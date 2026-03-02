@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model tokens {
+  id           Int    @id @default(autoincrement())
+  user_id      Int   
+  refreshToken String @db.VarChar(500)
+  user         users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
+}
+
+model users {
+  id          Int     @id @default(autoincrement())
+  login       String  @unique @db.VarChar(32)
+  password    String  @db.VarChar(255)
+  nickname    String  @db.VarChar(64)
+  email       String  @unique @db.VarChar(255)
+  isActivated Boolean @default(false)
+  actLink     String? @unique @db.VarChar(255)
+  tokens      tokens?
+
+  @@map("users")
+}
