@@ -5,15 +5,20 @@ import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 
 import { router } from './routes.js';
-// import errorMiddleware from './middlewares/errorMiddleware.js';
+import errorHandler from './exceptions/error-middleware.js';
+
 export default function buildApp(): Express {
   config();
   const app = express();
 
   app.use(express.json());
   app.use(cookieParser());
-  app.use(cors());
+  app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL,
+  }));
   app.use('/', router);
-  // app.use(errorMiddleware);
+  app.use(errorHandler);
+
   return app;
 }

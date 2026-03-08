@@ -12,6 +12,7 @@
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "outDir": "dist",
+   "typeRoots": ["./src/types", "./node_modules/@types"],
     "paths": {
       "~/*": [
         "./src/*"

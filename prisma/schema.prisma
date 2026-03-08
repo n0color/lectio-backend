@@ -10,7 +10,7 @@ datasource db {
 model token {
   id           Int    @id @default(autoincrement())
   user_id      Int   
-  refreshToken String @db.VarChar(500)
+  refreshToken String @unique @db.VarChar(500)
   userAgent String?
   expiresAt    DateTime
   user         user  @relation(fields: [user_id], references: [id], onDelete: Cascade)

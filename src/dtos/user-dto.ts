@@ -1,10 +1,10 @@
 export default class UserDto {
-  email: string;
+  login: string;
   id: number;
   isActivated: boolean;
 
   constructor(model: any) {
-    this.email = model.email;
+    this.login = model.login;
     this.id = model.id;
     this.isActivated = model.isActivated;
   }
