@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-import mailService from "~/mail/mail-service";
+import mailService from "~/user/mail/mail-service";
 import UserDto from "~/dtos/user-dto";
 import ApiError from "~/exceptions/api-error";
 
@@ -64,14 +64,14 @@ class AuthService {
       }
     }
 
-    async saveToken(userId: number, refreshToken: string, userAgent?: string) {
+    async saveToken(userId: string, refreshToken: string, userAgent?: string) {
       try {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 30);
     
         // Пытаемся найти существующий токен пользователя
         const existingToken = await prisma.token.findFirst({
-          where: { user_id: userId }
+          where: { userId: userId }
         });
     
         if (existingToken) {
@@ -89,7 +89,7 @@ class AuthService {
           // Создаём новый, если нет существующего
           const token = await prisma.token.create({
             data: {
-              user_id: userId,
+              userId: userId,
               refreshToken,
               userAgent,
               expiresAt

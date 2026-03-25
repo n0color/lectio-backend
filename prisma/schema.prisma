@@ -8,24 +8,64 @@ datasource db {
 }
 
 model token {
-  id           Int    @id @default(autoincrement())
-  user_id      Int   
+  id           String    @id @default(cuid())
+  userId       String   
   refreshToken String @unique @db.VarChar(500)
-  userAgent String?
+  userAgent    String?
   expiresAt    DateTime
-  user         user  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user         user  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tokens")
 }
 
 model user {
-  id          Int     @id @default(autoincrement())
+  id          String  @id @default(cuid())
   login       String  @unique @db.VarChar(32)
+  nickname    String?
   password    String  @db.VarChar(255)
   email       String  @unique @db.VarChar(255)
   isActivated Boolean @default(false)
   actLink     String? @unique @db.VarChar(255)
   tokens      token[]
 
+  authoredBooks   book[] @relation("authorBooks")
+  coauthoredBooks book[] @relation("coauthorBooks")
+
   @@map("users")
+}
+
+model book {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  authorId        String
+  author          user     @relation("authorBooks", fields: [authorId], references: [id])
+  coAuthorId      String?
+  coAuthor        user?    @relation("coauthorBooks", fields: [coAuthorId], references: [id])
+  coverUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isApproved      Boolean  @default(false)
+  chapters        chapter[]
+
+  @@index([authorId])
+  @@index([coAuthorId])
+  @@index([title])
+  @@map("books")
+}
+
+model chapter {
+  id            String   @id @default(cuid())
+  bookId        String 
+  book          book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapterNumber Int
+  title         String 
+  content       String   @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([bookId, chapterNumber])
+  @@index([bookId])
+  @@map("chapters")
 }

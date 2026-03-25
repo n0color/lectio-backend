@@ -1,6 +1,6 @@
 export default class UserDto {
   login: string;
-  id: number;
+  id: string;
   isActivated: boolean;
 
   constructor(model: any) {

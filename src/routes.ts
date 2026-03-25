@@ -1,10 +1,12 @@
 import type { Request, Response, NextFunction } from 'express'
 import { Router } from 'express';
-import { apiRouter } from './routers/apiRouter';
+import { authRouter } from './auth/auth-router';
+import { userRouter } from './user/user-router';
 
 export const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
   res.status(200).send('working...');
 });
-router.use('/api', apiRouter);
+router.use('/auth', authRouter);
+router.use('/user', userRouter);
