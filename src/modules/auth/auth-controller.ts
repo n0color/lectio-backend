@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import authService from "./auth-service";
 import { validationResult } from "express-validator";
 import ApiError from "~/exceptions/api-error";
-import userService from "~/user/user-service";
+import userService from "~/modules/user/user-service";
 
 
 export class AuthController {
@@ -27,7 +27,7 @@ export class AuthController {
   }
   async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const {password, login } = req.body;
+      const { password, login } = req.body;
       const userAgent = req.headers['user-agent'];
       const userData = await authService.login(password, login, userAgent);
       res.cookie('refreshToken', userData.refreshToken, {

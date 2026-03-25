@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-import mailService from "~/user/mail/mail-service";
+import mailService from "~/modules/user/mail/mail-service";
 import UserDto from "~/dtos/user-dto";
 import ApiError from "~/exceptions/api-error";
 

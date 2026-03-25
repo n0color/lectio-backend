@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { UserController } from "~/user/user-controller";
-import authMiddleware from "~/auth/auth-middleware";
+import { UserController } from "~/modules/user/user-controller";
+import authMiddleware from "~/middleware/auth-middleware";
 
 const userController = new UserController();
 

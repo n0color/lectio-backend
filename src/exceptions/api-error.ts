@@ -23,5 +23,11 @@ export default class ApiError extends Error {
   static InternalError(message: string, errors: any[] = []) {
     return new ApiError(500, message, errors);
   }
+  static NotFound(message: string, errors: any[] = []) {
+    return new ApiError(404, message, errors);
+  }
+  static Forbidden(message: string, errors: any[] = []) {
+    return new ApiError(404, message, errors);
+  }
 
 }

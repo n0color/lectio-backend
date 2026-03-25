@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 
 import { router } from './routes.js';
-import errorHandler from './exceptions/error-middleware.js';
+import errorHandler from './middleware/error-middleware.js';
 
 export default function buildApp(): Express {
   config();

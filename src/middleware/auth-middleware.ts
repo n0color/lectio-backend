@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import ApiError from "~/exceptions/api-error";
-import authService from "./auth-service";
+import authService from "../modules/auth/auth-service";
 import UserDto from "~/dtos/user-dto";
 
 export default function (req: Request, res: Response, next: NextFunction) {
@@ -22,7 +22,8 @@ export default function (req: Request, res: Response, next: NextFunction) {
     req.user = new UserDto({
       id: userData.id,
       login: userData.login,
-      isActive: userData.isActive,
+      isActive: userData.isActivated,
+      role: userData.role,
     });
      next();
   } catch (error) {

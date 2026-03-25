@@ -8,7 +8,6 @@ export class UserController {
   async getUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await userService.getAllUsers();
-      console.log(data);
       return res.json(data);
     } catch (error) {
       next(error);

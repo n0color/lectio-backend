@@ -18,10 +18,16 @@ model token {
   @@map("tokens")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model user {
   id          String  @id @default(cuid())
   login       String  @unique @db.VarChar(32)
   nickname    String?
+  role  Role  @default(USER)
   password    String  @db.VarChar(255)
   email       String  @unique @db.VarChar(255)
   isActivated Boolean @default(false)

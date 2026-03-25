@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from 'express';
-import ApiError from './api-error';
+import ApiError from '../exceptions/api-error';
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.log(err);
