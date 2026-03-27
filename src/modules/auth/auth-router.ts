@@ -5,8 +5,6 @@ import { body } from "express-validator";
 
 const authController = new AuthController();
 
-
-
 export const authRouter = Router();
 
 authRouter.post( '/registration', 

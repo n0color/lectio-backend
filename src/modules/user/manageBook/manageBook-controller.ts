@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express'
-import bookService from './book-service';
+import bookService from './manageBook-service';
 import ApiError from '~/exceptions/api-error';
 import type { CreateChapterDto } from '~/dtos/create-book-dto';
 
-export class BookController {
+export class ManageBookController {
 
   async createBook(req: Request, res: Response, next: NextFunction) {
     try {
