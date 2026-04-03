@@ -11,5 +11,5 @@ router.get('/', (req: Request, res: Response) => {
   res.status(200).send('working...');
 });
 router.use('/auth', authRouter);
-router.use('/user', userRouter);
+router.use('/user', authMiddleware, userRouter);
 router.use('/admin', authMiddleware, adminRouter)

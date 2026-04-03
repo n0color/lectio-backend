@@ -18,12 +18,6 @@ class UserService {
       data: {isActivated: true},
     });
   }
-  async getAllUsers() {
-    const users = await prisma.user.findMany();
-    const tokens = await prisma.token.findMany();
-    const data = [users, tokens] 
-    return data;
-  }
 
 }
 
