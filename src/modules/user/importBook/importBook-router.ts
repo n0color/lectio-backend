@@ -17,5 +17,5 @@ const upload = multer({
 
 export const importBookRouter = Router();
 
-importBookRouter.post('/fb2', upload.single('file'), importBookController.importBook);
+importBookRouter.post('/fb2', authMiddleware, upload.single('file'), importBookController.importBook);
 

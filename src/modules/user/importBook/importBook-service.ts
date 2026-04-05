@@ -1,8 +1,10 @@
 import { prisma } from "~/lib/prisma";
 import type { CreateBookDto, CreateChapterDto } from "~/dtos/create-book-dto";
 import ApiError from "~/exceptions/api-error";
-import { initFb2File, type Fb2File } from "@lingo-reader/fb2-parser";
+import { initFb2File, type Fb2File, type Fb2Resource } from "@lingo-reader/fb2-parser";
 import manageBookService from "../manageBook/manageBook-service";
+import { storageService } from "~/storage";
+
 class ImportBookService {
 
   async importFB2(fileBuffer: Buffer, userId: string) {
@@ -13,6 +15,12 @@ class ImportBookService {
       throw ApiError.BadRequest('Не удалось разобрать FB2 файл. Возможно он повреждён');
     }
 
+    let coverUrl: string | undefined = undefined;
+    const coverBuffer = this.extractCoverImage(fb2);
+    if (coverBuffer) {
+      coverUrl = await storageService.saveFile(coverBuffer, 'cover.jpg', 'image/jpeg');
+    }
+
     const metadata = fb2.getMetadata()
     const title = metadata.title;
     const description = metadata.description;
@@ -20,7 +28,7 @@ class ImportBookService {
     const bookData: CreateBookDto = {
       title: title || 'Без названия',
       description,
-      coverUrl: undefined,
+      coverUrl: coverUrl,
       secondAuthorId: undefined,
       authorId: userId,
     }
@@ -30,8 +38,6 @@ class ImportBookService {
     if (!spine || spine.length === 0) {
       return statusCreate;
     }
-
-    const chaptersCreate: CreateChapterDto[] = [];
     for (let index = 0; index < spine.length; index++) {
       const chapterId = spine[index]?.id;
       if (!chapterId) {
@@ -50,6 +56,22 @@ class ImportBookService {
     }
     fb2.destroy();
     return statusCreate;
+  }
+
+  private extractCoverImage(fb2: any): Buffer | null {
+    if (!fb2.resources || !Array.isArray(fb2.resources)) return null;
+
+    // Ищем ресурс, который похож на обложку
+    const coverResource = fb2.resources.find((res: Fb2Resource) => {
+      const id = res.id?.toLowerCase();
+      return id === 'cover.jpg' || id === 'cover.jpeg' || id === 'cover.png' || id === 'cover';
+    });
+
+    if (coverResource && coverResource.data) {
+      return coverResource.data; // обычно это Buffer
+    }
+
+    return null;
   }
 }
 

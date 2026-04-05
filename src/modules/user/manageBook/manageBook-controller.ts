@@ -28,6 +28,7 @@ export class ManageBookController {
       const userId = req.user?.id;
       if (!userId) throw ApiError.UnauthorizedError();
       const updateData: any = req.body;
+      delete updateData.authorId;
       const updatedBook = await bookService.updateBook(bookId, userId, updateData);
       res.json(updatedBook);
     } catch (error) {
@@ -62,6 +63,7 @@ export class ManageBookController {
       next(error);
     }
   }
+
   async updateChapter(req: Request, res: Response, next: NextFunction) {
     try {
       const { chapterId } = req.params;
@@ -90,6 +92,24 @@ export class ManageBookController {
       res.json(result);
     } catch (error) {
       next(error);
+    }
+  }
+  async uploadCover(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.file) throw ApiError.BadRequest('Нет прикреплённого файла');
+      if (typeof req.params.bookId !== 'string') throw ApiError.BadRequest('Нет идентификатора книги');
+      const userId = req.user?.id;
+      if (!userId) throw ApiError.UnauthorizedError();
+      const coverUrl = await bookService.updateCover(
+        req.params.bookId,
+        userId,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+      res.json({ coverUrl });
+    } catch (err) {
+      next(err);
     }
   }
 

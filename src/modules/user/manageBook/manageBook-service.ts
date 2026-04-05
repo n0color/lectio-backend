@@ -1,6 +1,7 @@
 import { prisma } from "~/lib/prisma";
 import type { CreateBookDto, CreateChapterDto } from "~/dtos/create-book-dto";
 import ApiError from "~/exceptions/api-error";
+import { storageService } from "~/storage";
 
 class ManageBookService {
   async addBook(userId: string, data: CreateBookDto) {
@@ -59,7 +60,7 @@ class ManageBookService {
         title: data.title,
         description: data.description,
         coverUrl: data.coverUrl,
-        coAuthor: data.coAuthorId,
+        coAuthorId: data.coAuthorId,
       },
       include: { author: true, coAuthor: true }
     });
@@ -136,6 +137,32 @@ class ManageBookService {
   
     await prisma.chapter.delete({ where: { id: chapterId } });
     return { status: true, message: `Глава ${chapter.chapterNumber} успешно удалена!` };
+  }
+
+  async updateCover(bookId: string, userId: string, fileBuffer: Buffer, originalName: string, mimeType: string): Promise<string> {
+    const book = await prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        id: true,
+        coverUrl: true,
+      },
+    });
+  
+    if (!book) {
+      throw ApiError.NotFound('Книга не найдена');
+    }
+  
+    if (book.coverUrl) {
+      await storageService.deleteFile(book.coverUrl);
+    }
+    const newCoverUrl = await storageService.saveFile(fileBuffer, originalName, mimeType);
+
+    await prisma.book.update({
+      where: { id: bookId },
+      data: { coverUrl: newCoverUrl },
+    });
+  
+    return newCoverUrl;
   }
 
 }

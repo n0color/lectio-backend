@@ -44,8 +44,9 @@ model book {
   id              String   @id @default(cuid())
   title           String
   description     String?
-  authorId        String
-  author          user     @relation("authorBooks", fields: [authorId], references: [id])
+  isAuthorReg     Boolean  @default(false)
+  authorId        String?
+  author          user?     @relation("authorBooks", fields: [authorId], references: [id])
   coAuthorId      String?
   coAuthor        user?    @relation("coauthorBooks", fields: [coAuthorId], references: [id])
   coverUrl        String?
