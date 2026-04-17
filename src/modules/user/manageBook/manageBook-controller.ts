@@ -5,6 +5,48 @@ import type { CreateChapterDto } from '~/dtos/create-book-dto';
 
 export class ManageBookController {
 
+  async getUserBooks(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) throw ApiError.UnauthorizedError();
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const perPage = req.query.per_page ? parseInt(req.query.per_page as string, 10) : 20;
+      const result = await bookService.getUserBooks(userId, page, perPage);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async getBookById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { bookId } = req.params;
+      if (!bookId || typeof bookId !== 'string') {
+        throw ApiError.BadRequest("Неверные данные");
+      }
+      const book = await bookService.getBookById(bookId);
+      res.json(book);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getChapterById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { chapterId } = req.params;
+      if (!chapterId || typeof chapterId !== 'string') {
+        throw ApiError.BadRequest("Неверные данные");
+      }
+      const userId = req.user?.id;
+      if (!userId) throw ApiError.UnauthorizedError();
+  
+      const chapter = await bookService.getChapterById(chapterId, userId);
+      res.json(chapter);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async createBook(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id;

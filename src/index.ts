@@ -10,7 +10,7 @@ import errorHandler from './middleware/error-middleware.js';
 export default function buildApp(): Express {
   config();
   const app = express();
-
+  app.use('/static/covers', express.static('uploads/covers'));
   app.use(express.json());
   app.use(cookieParser());
   app.use(cors({

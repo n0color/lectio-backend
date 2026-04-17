@@ -4,6 +4,77 @@ import ApiError from "~/exceptions/api-error";
 import { storageService } from "~/storage";
 
 class ManageBookService {
+
+  async getUserBooks(userId: string, page: number = 1, perPage: number = 20) {
+    const skip = (page - 1) * perPage;
+    const where = {
+      OR: [
+        { authorId: userId },
+        { coAuthorId: userId }
+      ]
+    };
+    const [items, total] = await Promise.all([
+      prisma.book.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          coverUrl: true,
+          description: true,
+          isApproved: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: { nickname: true }
+          },
+          coAuthor: {
+            select: { nickname: true }
+          },
+          _count: { select: { chapters: true } }
+        },
+        skip,
+        take: perPage,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.book.count({ where })
+    ]);
+    return {
+      items,
+      total,
+      page,
+      perPage,
+      totalPages: Math.ceil(total / perPage)
+    };
+  }
+
+  async getBookById(bookId: string) {
+    const book = await prisma.book.findUnique({
+      where: { id: bookId },
+      include: {
+        author: { select: { id: true, login: true, nickname: true, email: true } },
+        coAuthor: { select: { id: true, login: true, nickname: true, email: true } },
+        chapters: {
+          orderBy: { chapterNumber: 'asc' },
+          select: { id: true, chapterNumber: true, title: true, createdAt: true, updatedAt: true }
+        }
+      }
+    });
+    if (!book) throw ApiError.NotFound('Книга не найдена');
+    return book;
+  }
+
+  async getChapterById(chapterId: string, userId: string) {
+    // Получаем главу вместе с данными о книге
+    const chapter = await prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+  
+    if (!chapter) {
+      throw ApiError.NotFound('Глава не найдена');
+    }
+    return chapter;
+  }
+
   async addBook(userId: string, data: CreateBookDto) {
     const authorId = userId;
     const authorExists = await prisma.user.findUnique({
