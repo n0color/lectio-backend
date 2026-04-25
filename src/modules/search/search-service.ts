@@ -71,6 +71,7 @@ class SearchService {
       prisma.book.findMany({
         where,
         select: {
+          id: true,
           title: true,
           coverUrl: true,
           description: true,
