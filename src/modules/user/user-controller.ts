@@ -4,15 +4,6 @@ import ApiError from '~/exceptions/api-error';
 
 export class UserController {
 
-
-  async getUsers(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = await userService.getAllUsers();
-      return res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  }
   async activate(req: Request, res: Response, next: NextFunction) {
     try {
       const { link } = req.params;

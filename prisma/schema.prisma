@@ -8,12 +8,12 @@ datasource db {
 }
 
 model token {
-  id           String    @id @default(cuid())
-  userId       String   
+  id           String @id @default(cuid())
+  userId       String
   refreshToken String @unique @db.VarChar(500)
   userAgent    String?
   expiresAt    DateTime
-  user         user  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         user @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tokens")
 }
@@ -27,48 +27,90 @@ model user {
   id          String  @id @default(cuid())
   login       String  @unique @db.VarChar(32)
   nickname    String?
-  role  Role  @default(USER)
+  role        Role    @default(USER)
   password    String  @db.VarChar(255)
   email       String  @unique @db.VarChar(255)
   isActivated Boolean @default(false)
   actLink     String? @unique @db.VarChar(255)
   tokens      token[]
+  avatar      String?
 
   authoredBooks   book[] @relation("authorBooks")
   coauthoredBooks book[] @relation("coauthorBooks")
+  createdTags     tag[]  @relation("UserCreatedTags")
 
   @@map("users")
 }
 
+model genre {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  books       book[]
+
+  @@map("genres")
+}
+
+model tag {
+  id        String   @id @default(cuid())
+  name      String   @unique @db.VarChar(100)
+  creatorId String?
+  creator   user?    @relation("UserCreatedTags", fields: [creatorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  books     bookTag[]
+
+  @@index([name])
+  @@map("tags")
+}
+
+model bookTag {
+  bookId String
+  tagId  String
+  book   book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+  @@map("book_tags")
+}
+
 model book {
-  id              String   @id @default(cuid())
-  title           String
-  description     String?
-  isAuthorReg     Boolean  @default(false)
-  authorId        String?
-  author          user?     @relation("authorBooks", fields: [authorId], references: [id])
-  coAuthorId      String?
-  coAuthor        user?    @relation("coauthorBooks", fields: [coAuthorId], references: [id])
-  coverUrl        String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  isApproved      Boolean  @default(false)
-  chapters        chapter[]
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isAuthorReg Boolean  @default(false)
+  authorId    String?
+  author      user?    @relation("authorBooks", fields: [authorId], references: [id])
+  coAuthorId  String?
+  coAuthor    user?    @relation("coauthorBooks", fields: [coAuthorId], references: [id])
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isApproved  Boolean  @default(false)
+  chapters    chapter[]
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  genreId     String?
+  genre       genre?   @relation(fields: [genreId], references: [id], onDelete: SetNull)
+  tags        bookTag[]
 
   @@index([authorId])
   @@index([coAuthorId])
   @@index([title])
+  @@index([views])
+  @@index([likes])
+  @@index([genreId])
   @@map("books")
 }
 
 model chapter {
   id            String   @id @default(cuid())
-  bookId        String 
+  bookId        String
   book          book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapterNumber Int
-  title         String 
+  title         String
   content       String   @db.Text
-
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

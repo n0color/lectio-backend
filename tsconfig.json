@@ -7,12 +7,14 @@
       "ESNext"
     ],
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "types": ["node"],
+    "moduleResolution": "node",
     "moduleDetection": "force",
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
+    "rootDir": "./src", 
     "outDir": "dist",
-   "typeRoots": ["./src/types", "./node_modules/@types"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "paths": {
       "~/*": [
         "./src/*"
@@ -23,7 +25,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "ES2023",
-    // "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
     "verbatimModuleSyntax": true
   },
   "exclude": [

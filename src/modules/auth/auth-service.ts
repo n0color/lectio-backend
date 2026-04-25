@@ -178,7 +178,6 @@ class AuthService {
         console.log('❌ Токен не прошел валидацию');
         throw ApiError.UnauthorizedError();
       }
-      console.log(refreshToken);
       const tokenData = await prisma.token.findUnique({
         where: { refreshToken }
       });

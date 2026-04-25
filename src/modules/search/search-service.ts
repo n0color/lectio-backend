@@ -19,6 +19,7 @@ class SearchService {
         select: {
           login: true,
           nickname: true,
+          avatar: true,
           // если есть поле avatarUrl – добавить
         },
         skip: offset,
