@@ -38,8 +38,72 @@ model user {
   authoredBooks   book[] @relation("authorBooks")
   coauthoredBooks book[] @relation("coauthorBooks")
   createdTags     tag[]  @relation("UserCreatedTags")
+  
+  sentFriendRequests   friendship[] @relation("Sender")
+  receivedFriendRequests friendship[] @relation("Receiver")
+  
+  supportTickets supportTicket[]
+  userBooks      userBook[]
+  reviews        review[]
 
   @@map("users")
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model friendship {
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  
+  sender   user @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver user @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId, status])
+  @@index([receiverId, status])
+  @@map("friendships")
+}
+
+enum SupportTicketType {
+  BUG
+  FEATURE_REQUEST
+  CONTENT_COMPLAINT
+  ACCOUNT_ISSUE
+  PAYMENT
+  OTHER
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model supportTicket {
+  id          String              @id @default(cuid())
+  userId      String
+  user        user                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        SupportTicketType
+  message     String              @db.Text
+  status      SupportTicketStatus @default(OPEN)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  resolvedAt  DateTime?
+  adminNotes  String?             @db.Text
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("support_tickets")
 }
 
 model genre {
@@ -75,32 +139,81 @@ model bookTag {
   @@map("book_tags")
 }
 
+enum BookStatus {
+  WANT_TO_READ
+  READING
+  FINISHED
+  DROPPED
+}
+
+model userBook {
+  userId    String
+  bookId    String
+  status    BookStatus   @default(WANT_TO_READ)
+  addedAt   DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  ownNote   String?      @db.Text
+
+  user      user         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, bookId])
+  @@index([userId])
+  @@index([status])
+  @@map("user_books")
+}
+
+model review {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String
+  rating    Int
+  content   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId])
+  @@index([rating])
+  @@map("reviews")
+}
+
 model book {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  isAuthorReg Boolean  @default(false)
-  authorId    String?
-  author      user?    @relation("authorBooks", fields: [authorId], references: [id])
-  coAuthorId  String?
-  coAuthor    user?    @relation("coauthorBooks", fields: [coAuthorId], references: [id])
-  coverUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isApproved  Boolean  @default(false)
-  chapters    chapter[]
-  views       Int      @default(0)
-  likes       Int      @default(0)
-  genreId     String?
-  genre       genre?   @relation(fields: [genreId], references: [id], onDelete: SetNull)
-  tags        bookTag[]
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  isAuthorReg   Boolean     @default(false)
+  authorId      String?
+  author        user?       @relation("authorBooks", fields: [authorId], references: [id])
+  coAuthorId    String?
+  coAuthor      user?       @relation("coauthorBooks", fields: [coAuthorId], references: [id])
+  coverUrl      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  isApproved    Boolean     @default(false)
+  chapters      chapter[]
+  views         Int         @default(0)
+  likes         Int         @default(0)
+  genreId       String?
+  genre         genre?      @relation(fields: [genreId], references: [id], onDelete: SetNull)
+  tags          bookTag[]
+
+  avgRating     Float?      
+  reviewsCount  Int         @default(0)
+
+  userBooks     userBook[]
+  reviews       review[]
 
   @@index([authorId])
   @@index([coAuthorId])
   @@index([title])
   @@index([views])
-  @@index([likes])
   @@index([genreId])
+  @@index([avgRating])
+  @@index([createdAt])
   @@map("books")
 }
 
