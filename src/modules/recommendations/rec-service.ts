@@ -80,8 +80,21 @@ class RecService {
         },
       },
     });
-
     return likestBooks;
+  }
+
+  async genres():Promise<any> {
+
+    const genres = await prisma.genre.findMany({
+      take: 10,
+      orderBy: { name: 'desc' },
+      select: {
+        id: true,
+        name: true,
+      }
+      },
+    )
+    return genres;
   }
 }
 

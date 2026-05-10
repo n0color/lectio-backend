@@ -98,7 +98,6 @@ model supportTicket {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   resolvedAt  DateTime?
-  adminNotes  String?             @db.Text
 
   @@index([userId])
   @@index([status])

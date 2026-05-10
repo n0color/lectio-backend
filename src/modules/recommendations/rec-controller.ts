@@ -31,6 +31,14 @@ class RecController {
       next(error);
     }
   }
+  async getGenres(req: Request, res: Response, next: NextFunction) {
+    try {
+      const genres = await recService.genres();
+      res.status(201).json(genres);
+    } catch (error) {
+      next(error);
+    }
+  }
 
 }
 
