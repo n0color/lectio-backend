@@ -1,0 +1,10 @@
+2026-05-14 16:30:24: Error: Dynamic require of "node:events" is not supported
+2026-05-14 16:30:24:     at file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:11:9
+2026-05-14 16:30:24:     at node_modules/express/lib/express.js (file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:23464:25)
+2026-05-14 16:30:24:     at __require2 (file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:14:50)
+2026-05-14 16:30:24:     at node_modules/express/index.js (file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:23503:22)
+2026-05-14 16:30:24:     at __require2 (file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:14:50)
+2026-05-14 16:30:24:     at file:///C:/Users/nocol/Desktop/lectio/lectio-backend/dist/server.js:60296:32
+2026-05-14 16:30:24:     at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+2026-05-14 16:30:24:     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-05-14 16:30:24:     at async node:internal/modules/esm/loader:639:26

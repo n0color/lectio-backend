@@ -1,13 +1,16 @@
 import { prisma } from "~/lib/prisma";
 import type { CreateBookDto, CreateChapterDto } from "~/dtos/create-book-dto";
 import ApiError from "~/exceptions/api-error";
-import { initFb2File, type Fb2File, type Fb2Resource } from "@lingo-reader/fb2-parser";
+import type { Fb2File, Fb2Resource } from "@lingo-reader/fb2-parser"; // только типы
 import manageBookService from "../manageBook/manageBook-service";
 import { storageService } from "~/storage";
 
 class ImportBookService {
 
   async importFB2(fileBuffer: Buffer, userId: string) {
+    // Динамический импорт ESM-модуля внутри CommonJS
+    const { initFb2File } = await import("@lingo-reader/fb2-parser");
+
     let fb2: Fb2File;
     try {
       fb2 = await initFb2File(fileBuffer);
@@ -61,14 +64,13 @@ class ImportBookService {
   private extractCoverImage(fb2: any): Buffer | null {
     if (!fb2.resources || !Array.isArray(fb2.resources)) return null;
 
-    // Ищем ресурс, который похож на обложку
     const coverResource = fb2.resources.find((res: Fb2Resource) => {
       const id = res.id?.toLowerCase();
       return id === 'cover.jpg' || id === 'cover.jpeg' || id === 'cover.png' || id === 'cover';
     });
 
     if (coverResource && coverResource.data) {
-      return coverResource.data; // обычно это Buffer
+      return coverResource.data;
     }
 
     return null;
