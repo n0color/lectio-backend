@@ -17,6 +17,3 @@ supportRouter.post(
   body("message").notEmpty().isLength({ min: 5, max: 5000 }),
   supportController.createTicket
 );
-
-supportRouter.get("/tickets", supportController.getUserTickets);
-supportRouter.get("/tickets/:id", supportController.getTicket);
