@@ -12,9 +12,9 @@ export class AuthController {
       if (!errors.isEmpty()) {
         return next(ApiError.BadRequest('Ошибка при валидации полей', errors.array()));
       }
-      const { email, password, login } = req.body;
+      const { email, password, login, nickname } = req.body;
       const userAgent = req.headers['user-agent'];
-      const userData = await authService.registration(email, password, login, userAgent);
+      const userData = await authService.registration(email, password, login, nickname, userAgent);
       res.cookie('refreshToken', userData.refreshToken, {
          maxAge: 30 * 24 * 60 * 60 * 1000,
          httpOnly: true,

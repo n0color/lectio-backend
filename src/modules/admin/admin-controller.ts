@@ -146,7 +146,7 @@ export class AdminController {
 
     async getSupportTickets(req: Request, res: Response, next: NextFunction) {
     try {
-      const { status, type, page = 1, limit = 20 } = req.query;
+      const { page = 1, limit = 20 } = req.query;
 
       const filters: any = {
         page: parseInt(page as string, 10),

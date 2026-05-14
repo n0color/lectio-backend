@@ -18,6 +18,7 @@ class BookController {
       }
       
       const result = await bookService.getBookWithChapters(bookIdStr);
+      console.log(JSON.stringify(result, null, 2));
       res.json(result);
     } catch (err) {
       next(err);

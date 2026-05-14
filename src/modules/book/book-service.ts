@@ -14,8 +14,9 @@ class BookService {
         description: true,
         coverUrl: true,
         createdAt: true,
+        avgRating: true,
+        reviewsCount: true,
         updatedAt: true,
-        views: true,
         likes: true,
         genre: {
           select: { id: true, name: true },

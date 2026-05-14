@@ -6,7 +6,8 @@ export interface BookWithChaptersResponse {
   coverUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
-  views: number;
+  avgRating: number | null;
+  reviewsCount: number | null;
   likes: number;
   genre: { id: string; name: string } | null;
   author: { nickname: string | null } | null;

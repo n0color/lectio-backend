@@ -8,6 +8,7 @@ import { searchRouter } from './modules/search/search-router';
 import { bookRouter } from './modules/book/book-router';
 import { recRouter } from './modules/recommendations/rec-router';
 import { libraryRouter } from './modules/libary/library-router';
+import { supportRouter } from './modules/support/support-router';
 
 export const router = Router();
 
@@ -21,3 +22,4 @@ router.use('/search', searchRouter);
 router.use('/user', authMiddleware, userRouter);
 router.use('/admin', authMiddleware, adminRouter);
 router.use('/library', authMiddleware, libraryRouter);
+router.use("/support", supportRouter);

@@ -20,6 +20,7 @@ class SearchService {
           login: true,
           nickname: true,
           avatar: true,
+          id: true,
           // если есть поле avatarUrl – добавить
         },
         skip: offset,

@@ -7,6 +7,7 @@ declare global {
         id: string;
         role: string;
         login: string;
+        nickname?: string;
         isActivated?: boolean;
       };
     }

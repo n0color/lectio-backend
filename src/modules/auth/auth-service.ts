@@ -10,7 +10,7 @@ import ApiError from "~/exceptions/api-error";
 
 class AuthService {
 
-  async registration(email: string, password: string, login: string, userAgent?: string) {
+  async registration(email: string, password: string, login: string,  nickname: string, userAgent?: string,) {
     const candidate = await prisma.user.findFirst({
         where: {
           OR: [
@@ -28,12 +28,13 @@ class AuthService {
       data: {
         login: login,
         email: email,
+        nickname: nickname,
         password: hashPassword,
         actLink: activationLink,
       }
     });
     // await mailService.sendActivationMail(email, activationLink);
-    const userDto = new UserDto(user); // id, email, isActive
+    const userDto = new UserDto(user);
     const tokens = this.generateTokens({...userDto});
     await this.saveToken(userDto.id, tokens.refreshToken, userAgent);
     return {

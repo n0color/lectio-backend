@@ -12,7 +12,7 @@
     "moduleDetection": "force",
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
-    "rootDir": "./src", 
+    "rootDir": ".",
     "outDir": "dist",
     "typeRoots": ["./src/types", "./node_modules/@types"],
     "paths": {
@@ -25,7 +25,6 @@
     "sourceMap": true,
     "strict": true,
     "target": "ES2023",
-    "ignoreDeprecations": "6.0",
     "verbatimModuleSyntax": true
   },
   "exclude": [
@@ -33,6 +32,7 @@
     "dist"
   ],
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "generated/prisma/**/*.ts"
   ]
 }

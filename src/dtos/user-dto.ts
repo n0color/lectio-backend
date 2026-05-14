@@ -1,6 +1,7 @@
 export default class UserDto {
   login: string;
-  role: string
+  role: string;
+  nickname: string;
   id: string;
   isActivated: boolean;
 
@@ -9,5 +10,6 @@ export default class UserDto {
     this.role = model.role;
     this.id = model.id;
     this.isActivated = model.isActivated;
+    this.nickname = model.nickname;
   }
 }

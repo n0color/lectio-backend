@@ -26,7 +26,7 @@ enum Role {
 model user {
   id          String  @id @default(cuid())
   login       String  @unique @db.VarChar(32)
-  nickname    String?
+  nickname    String
   role        Role    @default(USER)
   password    String  @db.VarChar(255)
   email       String  @unique @db.VarChar(255)
@@ -45,6 +45,7 @@ model user {
   supportTickets supportTicket[]
   userBooks      userBook[]
   reviews        review[]
+  reviewComments ReviewComment[]
 
   @@map("users")
 }
@@ -174,10 +175,30 @@ model review {
   user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   book      book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
+  comments  ReviewComment[]
+
   @@unique([userId, bookId])
   @@index([bookId])
   @@index([rating])
   @@map("reviews")
+}
+
+model ReviewComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  userId    String
+  reviewId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review    review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("review_comments")
 }
 
 model book {
