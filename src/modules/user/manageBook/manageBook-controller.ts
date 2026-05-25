@@ -47,6 +47,15 @@ export class ManageBookController {
     }
   }
 
+  async getGenres(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const genres = await bookService.getGenres();
+      res.json({ items: genres });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async createBook(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id;

@@ -1,9 +1,21 @@
+import type { CreateBookDto, CreateChapterDto, UpdateBookDto } from "~/dtos/create-book-dto";
 import { prisma } from "~/lib/prisma";
-import type { CreateBookDto, CreateChapterDto } from "~/dtos/create-book-dto";
+import { normalizeTagIds, syncBookTags, validateTagIds } from "~/lib/book-tags";
 import ApiError from "~/exceptions/api-error";
 import { storageService } from "~/storage";
 
 class ManageBookService {
+
+  async getGenres() {
+    return prisma.genre.findMany({
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
+    });
+  }
 
   async getUserBooks(userId: string, page: number = 1, perPage: number = 20) {
     const skip = (page - 1) * perPage;
@@ -24,11 +36,21 @@ class ManageBookService {
           isApproved: true,
           createdAt: true,
           updatedAt: true,
+          genre: {
+            select: { id: true, name: true },
+          },
           author: {
             select: { nickname: true }
           },
           coAuthor: {
             select: { nickname: true }
+          },
+          tags: {
+            select: {
+              tag: {
+                select: { id: true, name: true },
+              },
+            },
           },
           _count: { select: { chapters: true } }
         },
@@ -38,8 +60,12 @@ class ManageBookService {
       }),
       prisma.book.count({ where })
     ]);
+
     return {
-      items,
+      items: items.map((book) => ({
+        ...book,
+        tags: book.tags.map((bt) => bt.tag),
+      })),
       total,
       page,
       perPage,
@@ -53,6 +79,12 @@ class ManageBookService {
       include: {
         author: { select: { id: true, login: true, nickname: true, email: true } },
         coAuthor: { select: { id: true, login: true, nickname: true, email: true } },
+        genre: { select: { id: true, name: true } },
+        tags: {
+          select: {
+            tag: { select: { id: true, name: true } },
+          },
+        },
         chapters: {
           orderBy: { chapterNumber: 'asc' },
           select: { id: true, chapterNumber: true, title: true, createdAt: true, updatedAt: true }
@@ -60,11 +92,14 @@ class ManageBookService {
       }
     });
     if (!book) throw ApiError.NotFound('Книга не найдена');
-    return book;
+
+    return {
+      ...book,
+      tags: book.tags.map((bt) => bt.tag),
+    };
   }
 
   async getChapterById(chapterId: string, userId: string) {
-    // Получаем главу вместе с данными о книге
     const chapter = await prisma.chapter.findUnique({
       where: { id: chapterId },
     });
@@ -75,14 +110,38 @@ class ManageBookService {
     return chapter;
   }
 
+  private async validateGenreId(genreId: string) {
+    const genre = await prisma.genre.findUnique({
+      where: { id: genreId },
+      select: { id: true },
+    });
+
+    if (!genre) {
+      throw ApiError.BadRequest("Жанр не найден");
+    }
+  }
+
   async addBook(userId: string, data: CreateBookDto) {
-    const authorId = userId;
+    if (!data.title?.trim()) {
+      throw ApiError.BadRequest("Название книги обязательно");
+    }
+
+    if (!data.genreId) {
+      throw ApiError.BadRequest("Жанр обязателен");
+    }
+
+    await this.validateGenreId(data.genreId);
+
+    const tagIds = normalizeTagIds(data.tagIds);
+    await validateTagIds(tagIds);
+
     const authorExists = await prisma.user.findUnique({
-      where: { id: authorId }
+      where: { id: userId }
     });
     if (!authorExists) {
       throw ApiError.BadRequest('Автор не найден');
     }
+
     if (data.secondAuthorId) {
       const secondAuthorExists = await prisma.user.findUnique({
         where: { id: data.secondAuthorId }
@@ -91,24 +150,28 @@ class ManageBookService {
         throw ApiError.BadRequest('Второй автор не найден');
       }
     }
+
     const book = await prisma.book.create({
       data: {
-        title: data.title,
+        title: data.title.trim(),
         description: data.description,
-        authorId,
+        authorId: userId,
         coAuthorId: data.secondAuthorId,
         coverUrl: data.coverUrl,
-        isApproved: true, //заглушка для dev
+        genreId: data.genreId,
+        isApproved: true,
+        ...(tagIds.length > 0 && {
+          tags: {
+            create: tagIds.map((tagId) => ({ tagId })),
+          },
+        }),
       },
-      include: {
-        chapters: true,
-      }
     });
 
     return { status: true, bookId: book.id, message: `Книга ${book.title} успешно добавлена!` }
   }
 
-  async updateBook(bookId: string, userId: string, data: any) {
+  async updateBook(bookId: string, userId: string, data: UpdateBookDto) {
     const book = await prisma.book.findUnique({
       where: {id: bookId},
       select: {authorId: true, coAuthorId: true }
@@ -119,23 +182,53 @@ class ManageBookService {
       throw ApiError.Forbidden('У вас нет прав на редактирование книги!');
     }
 
-    if (data.coAuthorId) {
+    const coAuthorId = data.coAuthorId ?? data.secondAuthorId;
+
+    if (coAuthorId) {
       const secondAuthor = await prisma.user.findUnique({
-        where: { id: data.coAuthorId }
+        where: { id: coAuthorId }
       });
       if (!secondAuthor) throw ApiError.BadRequest('Соавтор не найден');
     }
+
+    if (data.genreId) {
+      await this.validateGenreId(data.genreId);
+    }
+
+    if (data.tagIds !== undefined) {
+      await syncBookTags(bookId, data.tagIds);
+    }
+
     const updatedBook = await prisma.book.update({
       where: { id: bookId },
       data: {
-        title: data.title,
-        description: data.description,
-        coverUrl: data.coverUrl,
-        coAuthorId: data.coAuthorId,
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.coverUrl !== undefined && { coverUrl: data.coverUrl }),
+        ...(coAuthorId !== undefined && { coAuthorId }),
+        ...(data.genreId !== undefined && { genreId: data.genreId }),
       },
-      include: { author: true, coAuthor: true }
+      include: {
+        author: true,
+        coAuthor: true,
+        genre: { select: { id: true, name: true } },
+        tags: {
+          select: {
+            tag: { select: { id: true, name: true } },
+          },
+        },
+      }
     });
-    return { status: true, bookId: updatedBook.id, message: `Книга ${updatedBook.title} успешно обновлена!` }
+
+    return {
+      status: true,
+      bookId: updatedBook.id,
+      message: `Книга ${updatedBook.title} успешно обновлена!`,
+      book: {
+        ...updatedBook,
+        tags: updatedBook.tags.map((bt) => bt.tag),
+      },
+    };
   }
 
   async deleteBook(bookId: string, userId: string) {
@@ -173,7 +266,6 @@ class ManageBookService {
     return { status: true, chapterId: chapter.id, message: `Глава ${nextNumber} успешно добавлена!` }
   }
   async updateChapter(chapterId: string, userId: string, data: any) {
-    // Получаем книгу через главу
     const chapter = await prisma.chapter.findUnique({
       where: { id: chapterId },
       include: { book: { select: { authorId: true, coAuthorId: true } } }

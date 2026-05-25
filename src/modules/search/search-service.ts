@@ -1,4 +1,5 @@
 import { prisma } from "~/lib/prisma";
+import { bookCardSelect, mapBookCard } from "~/lib/book-helpers";
 import type { SearchUsersQuery, SearchBooksQuery, SearchUsersResponse, SearchBooksResponse } from '~/types/search';
 
 
@@ -21,7 +22,6 @@ class SearchService {
           nickname: true,
           avatar: true,
           id: true,
-          // если есть поле avatarUrl – добавить
         },
         skip: offset,
         take: limit,
@@ -71,18 +71,7 @@ class SearchService {
     const [items, total] = await Promise.all([
       prisma.book.findMany({
         where,
-        select: {
-          id: true,
-          title: true,
-          coverUrl: true,
-          description: true,
-          createdAt: true,
-          author: {
-            select: {
-              nickname: true,
-            },
-          },
-        },
+        select: bookCardSelect,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
@@ -92,7 +81,7 @@ class SearchService {
 
     const totalPages = Math.ceil(total / perPage);
     return {
-      items,
+      items: items.map(mapBookCard),
       total,
       page,
       perPage,

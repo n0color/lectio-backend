@@ -8,7 +8,7 @@ class RecController {
   async getBetaRecommendation(req: Request, res: Response, next: NextFunction) {
     try {
       const recommendations = await recService.betaRecommendations();
-      res.status(201).json(recommendations);
+      res.json(recommendations);
     } catch (error) {
       next(error);
     }
@@ -17,7 +17,7 @@ class RecController {
     async getNewest(req: Request, res: Response, next: NextFunction) {
     try {
       const recommendations = await recService.newestRecommendations();
-      res.status(201).json(recommendations);
+      res.json(recommendations);
     } catch (error) {
       next(error);
     }
@@ -26,7 +26,7 @@ class RecController {
   async getLikest(req: Request, res: Response, next: NextFunction) {
     try {
       const recommendations = await recService.likestRecommendations();
-      res.status(201).json(recommendations);
+      res.json(recommendations);
     } catch (error) {
       next(error);
     }
@@ -34,7 +34,7 @@ class RecController {
   async getGenres(req: Request, res: Response, next: NextFunction) {
     try {
       const genres = await recService.genres();
-      res.status(201).json(genres);
+      res.json({ items: genres });
     } catch (error) {
       next(error);
     }

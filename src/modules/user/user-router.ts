@@ -3,6 +3,7 @@ import { UserController } from "~/modules/user/user-controller";
 import authMiddleware from "~/middleware/auth-middleware";
 import { manageBookRouter } from "./manageBook/manageBook-router";
 import { importBookRouter } from "./importBook/importBook-router";
+import { tagRouter } from "./tag/tag-router";
 
 const userController = new UserController();
 
@@ -19,4 +20,5 @@ userRouter.post('/friend-requests/:requestId/accept', userController.acceptFrien
 userRouter.delete('/friend-requests/:requestId/decline', userController.declineFriendRequest);
 userRouter.delete('/friend-requests/sent/:requestId', userController.cancelFriendRequest);
 userRouter.use('/manage', manageBookRouter);
+userRouter.use('/tags', tagRouter);
 userRouter.use('/import', importBookRouter);

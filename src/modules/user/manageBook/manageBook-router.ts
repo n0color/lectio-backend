@@ -7,6 +7,8 @@ const bookController = new ManageBookController();
 export const manageBookRouter = Router();
 
 
+manageBookRouter.get('/genres', bookController.getGenres);
+
 //Просмотр книг(и) и ёё глав
 manageBookRouter.get('/my', bookController.getUserBooks);
 manageBookRouter.get('/:bookId', bookController.getBookById);

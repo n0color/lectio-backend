@@ -1,100 +1,63 @@
-// src/modules/books/book-service.ts
 import { prisma } from '~/lib/prisma';
-import type { BookWithChaptersResponse, ChapterResponse } from '~/types/books';
-import ApiError from '~/exceptions/api-error';
+import { bookCardSelect, mapBookCard } from '~/lib/book-helpers';
 
 
 class RecService {
 
-  async betaRecommendations():Promise<any>  {
-    
-    const randomBooks = await prisma.$queryRaw<Array<{
-      id: string;
-      title: string;
-      coverUrl: string | null;
-      description: string | null;
-      createdAt: Date;
-      authorNickname: string | null;
-    }>>`
-      SELECT 
-        b.id, 
-        b.title, 
-        b."coverUrl", 
-        b.description, 
-        b."createdAt",
-        u.nickname AS "authorNickname"
+  async betaRecommendations() {
+    const randomIds = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT b.id
       FROM books b
-      LEFT JOIN users u ON b."authorId" = u.id
+      WHERE b."isApproved" = true
       ORDER BY random()
       LIMIT 10
     `;
-    const books = randomBooks.map(book => ({
-      id: book.id,
-      title: book.title,
-      coverUrl: book.coverUrl,
-      description: book.description,
-      createdAt: book.createdAt,
-      author: { nickname: book.authorNickname }
-    }));
 
-    return books;
+    if (randomIds.length === 0) {
+      return [];
+    }
+
+    const books = await prisma.book.findMany({
+      where: { id: { in: randomIds.map((book) => book.id) } },
+      select: bookCardSelect,
+    });
+
+    const orderMap = new Map(randomIds.map((book, index) => [book.id, index]));
+    return books
+      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+      .map(mapBookCard);
   }
 
-  async newestRecommendations():Promise<any> {
-
+  async newestRecommendations() {
     const newestBooks = await prisma.book.findMany({
+      where: { isApproved: true },
       take: 10,
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        coverUrl: true,
-        description: true,
-        createdAt: true,
-        author: {          // связь через authorId
-          select: {
-            nickname: true,
-          },
-        },
-      },
+      select: bookCardSelect,
     });
 
-    return newestBooks;
+    return newestBooks.map(mapBookCard);
   }
 
-  async likestRecommendations():Promise<any> {
-
+  async likestRecommendations() {
     const likestBooks = await prisma.book.findMany({
+      where: { isApproved: true },
       take: 10,
       orderBy: { likes: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        coverUrl: true,
-        description: true,
-        createdAt: true,
-        author: {          // связь через authorId
-          select: {
-            nickname: true,
-          },
-        },
-      },
+      select: bookCardSelect,
     });
-    return likestBooks;
+
+    return likestBooks.map(mapBookCard);
   }
 
-  async genres():Promise<any> {
-
-    const genres = await prisma.genre.findMany({
-      take: 10,
-      orderBy: { name: 'desc' },
+  async genres() {
+    return prisma.genre.findMany({
+      orderBy: { name: 'asc' },
       select: {
         id: true,
         name: true,
-      }
       },
-    )
-    return genres;
+    });
   }
 }
 

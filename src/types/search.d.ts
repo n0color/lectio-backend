@@ -1,13 +1,15 @@
+import type { BookCardItem } from "~/lib/book-helpers";
+
 export interface SearchUsersQuery {
   q: string;
-  limit?: number;   // по умолчанию 5
-  offset?: number;  // по умолчанию 0
+  limit?: number;
+  offset?: number;
 }
 
 export interface SearchBooksQuery {
   q: string;
-  page?: number;     // по умолчанию 1
-  perPage?: number;  // по умолчанию 20
+  page?: number;
+  perPage?: number;
 }
 
 export interface SearchUsersResponse {
@@ -26,16 +28,10 @@ export interface SearchBooksResponse {
 }
 
 export interface UserSearchItem {
+  id: string;
+  login: string;
   nickname: string | null;
-  avatarUrl?: string | null; // если есть
+  avatar?: string | null;
 }
 
-export interface BookSearchItem {
-  title: string;
-  coverUrl: string | null;
-  description: string | null;
-  author: {
-    nickname: string | null;
-  } | null;
-  createdAt: Date;
-}
+export type BookSearchItem = BookCardItem;

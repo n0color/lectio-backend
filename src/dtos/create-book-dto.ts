@@ -6,8 +6,19 @@ export interface CreateChapterDto {
 export interface CreateBookDto {
   title: string;
   description?: string;
-  authorId: string;
   secondAuthorId?: string;
   coverUrl?: string;
+  genreId: string;
+  tagIds?: string[];
   chapters?: CreateChapterDto[];
+}
+
+export interface UpdateBookDto {
+  title?: string;
+  description?: string;
+  coverUrl?: string;
+  coAuthorId?: string;
+  secondAuthorId?: string;
+  genreId?: string;
+  tagIds?: string[];
 }
