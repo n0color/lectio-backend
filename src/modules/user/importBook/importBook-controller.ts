@@ -20,7 +20,12 @@ class ImportBookController {
         throw ApiError.BadRequest('Поддерживаются только файлы FB2');
       }
 
-      const response = await importBookService.importFB2(file.buffer, userId);
+      const genreId = req.body?.genreId;
+      if (!genreId || typeof genreId !== 'string') {
+        throw ApiError.BadRequest('Жанр обязателен');
+      }
+
+      const response = await importBookService.importFB2(file.buffer, userId, genreId);
       
       res.json(response);
     } catch (error) {

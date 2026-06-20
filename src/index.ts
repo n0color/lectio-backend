@@ -15,7 +15,7 @@ export default function buildApp(): Express {
   app.use(cookieParser());
   app.use(cors({
     credentials: true,
-    origin: process.env.CLIENT_URL,
+    origin: true,
   }));
   app.use('/api', router);
   app.use(errorHandler);

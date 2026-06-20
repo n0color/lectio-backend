@@ -9,7 +9,7 @@
     "module": "commonjs",
     "types": ["node"],
     "moduleResolution": "node10",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "moduleDetection": "force",
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,

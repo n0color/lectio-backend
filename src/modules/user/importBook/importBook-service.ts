@@ -7,7 +7,7 @@ import { storageService } from "~/storage";
 
 class ImportBookService {
 
-  async importFB2(fileBuffer: Buffer, userId: string) {
+  async importFB2(fileBuffer: Buffer, userId: string, genreId: string) {
     // Динамический импорт ESM-модуля внутри CommonJS
     const { initFb2File } = await import("@lingo-reader/fb2-parser");
 
@@ -32,8 +32,7 @@ class ImportBookService {
       title: title || 'Без названия',
       description,
       coverUrl: coverUrl,
-      secondAuthorId: undefined,
-      authorId: userId,
+      genreId,
     }
     const statusCreate = await manageBookService.addBook(userId, bookData);
 
