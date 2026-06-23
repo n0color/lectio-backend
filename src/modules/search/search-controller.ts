@@ -86,6 +86,7 @@ class SearchController {
       next(err);
     }
   }
+  
   async getBooksByGenre(req: Request, res: Response, next: NextFunction) {
     try {
       const genreId = req.query.genreId as string;
