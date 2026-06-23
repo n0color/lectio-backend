@@ -43,7 +43,7 @@ class RecService {
     const likestBooks = await prisma.book.findMany({
       where: { isApproved: true },
       take: 10,
-      orderBy: { likes: 'desc' },
+      orderBy: { reviewsCount: 'desc' },
       select: bookCardSelect,
     });
 

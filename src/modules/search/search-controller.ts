@@ -44,6 +44,48 @@ class SearchController {
       next(err);
     }
   }
+
+  // ----- НОВЫЕ МЕТОДЫ -----
+
+  async searchUserComments(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        throw ApiError.BadRequest('Query parameter "userId" is required');
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+
+      const result = await searchService.getUserComments({
+        userId,
+        limit: limit && !isNaN(limit) ? limit : undefined,
+        offset: offset && !isNaN(offset) ? offset : undefined,
+      });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async searchUserBooks(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        throw ApiError.BadRequest('Query parameter "userId" is required');
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+
+      const result = await searchService.getUserBooks({
+        userId,
+        limit: limit && !isNaN(limit) ? limit : undefined,
+        offset: offset && !isNaN(offset) ? offset : undefined,
+      });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default new SearchController();

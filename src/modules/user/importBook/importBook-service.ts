@@ -1,78 +1,70 @@
 import { prisma } from "~/lib/prisma";
-import type { CreateBookDto, CreateChapterDto } from "~/dtos/create-book-dto";
+import type { CreateBookDto } from "~/dtos/create-book-dto";
 import ApiError from "~/exceptions/api-error";
-import type { Fb2File, Fb2Resource } from "@lingo-reader/fb2-parser"; // только типы
+import { initFb2File } from "@lingo-reader/fb2-parser";
 import manageBookService from "../manageBook/manageBook-service";
 import { storageService } from "~/storage";
+import fs from "fs/promises";
+import os from "os";
+import path from "path";
 
 class ImportBookService {
 
   async importFB2(fileBuffer: Buffer, userId: string, genreId: string) {
-    // Динамический импорт ESM-модуля внутри CommonJS
-    const { initFb2File } = await import("@lingo-reader/fb2-parser");
+    const resourceSaveDir = path.join(os.tmpdir(), "lectio-fb2-import");
 
-    let fb2: Fb2File;
     try {
-      fb2 = await initFb2File(fileBuffer);
-    } catch (error) {
-      throw ApiError.BadRequest('Не удалось разобрать FB2 файл. Возможно он повреждён');
-    }
+      const fb2 = await initFb2File(fileBuffer, resourceSaveDir);
 
-    let coverUrl: string | undefined = undefined;
-    const coverBuffer = this.extractCoverImage(fb2);
-    if (coverBuffer) {
-      coverUrl = await storageService.saveFile(coverBuffer, 'cover.jpg', 'image/jpeg');
-    }
+      let coverUrl: string | undefined;
+      const coverPath = fb2.getCoverImage();
+      if (coverPath) {
+        const coverBuffer = await fs.readFile(coverPath);
+        coverUrl = await storageService.saveFile(coverBuffer, path.basename(coverPath), "image/jpeg");
+      }
 
-    const metadata = fb2.getMetadata()
-    const title = metadata.title;
-    const description = metadata.description;
+      const metadata = fb2.getMetadata();
+      const rawDescription = metadata.description;
+      const description = typeof rawDescription === "string" ? rawDescription : undefined;
 
-    const bookData: CreateBookDto = {
-      title: title || 'Без названия',
-      description,
-      coverUrl: coverUrl,
-      genreId,
-    }
-    const statusCreate = await manageBookService.addBook(userId, bookData);
+      const bookData: CreateBookDto = {
+        title: metadata.title?.trim() || "Без названия",
+        description,
+        coverUrl,
+        genreId,
+      };
+      const statusCreate = await manageBookService.addBook(userId, bookData);
 
-    const spine = fb2.getSpine();
-    if (!spine || spine.length === 0) {
+      const spine = fb2.getSpine();
+      if (!spine || spine.length === 0) {
+        fb2.destroy();
+        return statusCreate;
+      }
+
+      for (let index = 0; index < spine.length; index++) {
+        const chapterId = spine[index]?.id;
+        if (!chapterId) {
+          continue;
+        }
+        const chapter = fb2.loadChapter(chapterId);
+        if (!chapter) {
+          continue;
+        }
+        await manageBookService.addChapter(statusCreate.bookId, {
+          title: `Глава ${index + 1}`,
+          content: chapter.html,
+        });
+      }
+
+      fb2.destroy();
       return statusCreate;
-    }
-    for (let index = 0; index < spine.length; index++) {
-      const chapterId = spine[index]?.id;
-      if (!chapterId) {
-        continue;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
       }
-      const chapter = fb2.loadChapter(chapterId);
-      if (!chapter) {
-        continue;
-      }
-      const chapterHtml = chapter.html;
-      let chapterTitle = `Глава ${index + 1}`;
-      await manageBookService.addChapter(statusCreate.bookId, {
-        title: chapterTitle,
-        content: chapterHtml,
-      });
+      console.error("FB2 import error:", error);
+      throw ApiError.BadRequest("Не удалось импортировать FB2 файл");
     }
-    fb2.destroy();
-    return statusCreate;
-  }
-
-  private extractCoverImage(fb2: any): Buffer | null {
-    if (!fb2.resources || !Array.isArray(fb2.resources)) return null;
-
-    const coverResource = fb2.resources.find((res: Fb2Resource) => {
-      const id = res.id?.toLowerCase();
-      return id === 'cover.jpg' || id === 'cover.jpeg' || id === 'cover.png' || id === 'cover';
-    });
-
-    if (coverResource && coverResource.data) {
-      return coverResource.data;
-    }
-
-    return null;
   }
 }
 
