@@ -86,6 +86,25 @@ class SearchController {
       next(err);
     }
   }
+  async getBooksByGenre(req: Request, res: Response, next: NextFunction) {
+    try {
+      const genreId = req.query.genreId as string;
+      if (!genreId) {
+        throw ApiError.BadRequest('Query parameter "genreId" is required');
+      }
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const perPage = req.query.per_page ? parseInt(req.query.per_page as string, 10) : undefined;
+
+      const result = await searchService.getBooksByGenre({
+        genreId,
+        page: page && !isNaN(page) ? page : undefined,
+        perPage: perPage && !isNaN(perPage) ? perPage : undefined,
+      });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default new SearchController();
